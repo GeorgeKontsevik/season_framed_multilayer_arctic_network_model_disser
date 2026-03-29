@@ -118,7 +118,7 @@ def graph_to_city_model(G, service_radius, const_base_demand, service_name="hosp
     return city_model
 
 
-def calculate_graph_provision(G, service_radius, const_base_demand, service_name="hospital", return_assignment=False):
+def calculate_graph_provision(G, service_radius, const_base_demand, service_name="hospital", return_assignment=False, method="lp", **kwargs):
     """
     Calculate provision metrics for graph and create assignment edges
     
@@ -128,6 +128,8 @@ def calculate_graph_provision(G, service_radius, const_base_demand, service_name
         const_base_demand: Base demand per 1000 population
         service_name: Type of service to analyze
         return_assignment: Whether to return assignment details
+        method: Provision method — "lp" / "lp_distance" (LP min distance) or "lp_coverage" (coverage matrix).
+                model.calculate_provision supports "lp" and "iterative"; lp_distance/lp_coverage map to "lp".
         
     Returns:
         tuple: (G_with_assignments, provision_result, assignment_matrix)
@@ -135,6 +137,9 @@ def calculate_graph_provision(G, service_radius, const_base_demand, service_name
             - provision_result: DataFrame with provision metrics
             - assignment_matrix: DataFrame showing demand distribution
     """
+    # model.calculate_provision supports "lp" and "iterative"; map pipeline methods
+    model_method = "lp" if method in ("lp", "lp_distance", "lp_coverage") else method
+
     # Convert graph to city_model format
     # Create adjacency matrix first
     adj_matrix = create_adjacency_matrix(G)
@@ -152,7 +157,7 @@ def calculate_graph_provision(G, service_radius, const_base_demand, service_name
     result, assignments = model.calculate_provision(
         city_model=city_model, 
         service_type=service_name, 
-        method="lp",
+        method=model_method,
     )
 
     # Create a fresh directed graph for service flows
