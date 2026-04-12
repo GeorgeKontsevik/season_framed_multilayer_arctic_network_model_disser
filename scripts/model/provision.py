@@ -3,8 +3,14 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import math
+import tempfile
+from pathlib import Path
 
 import scripts.model.model as model  # Assuming model is a module that contains the calculate_provision function
+from aggregated_spatial_pipeline.pandana_bridge import (
+    build_graph_node_matrix_pandana_external,
+    build_pairs_shortest_paths_pandana_external,
+)
 
 def calculate_base_demand(population, const_base_demand):
     """Calculate base demand from population with safety checks"""
@@ -32,33 +38,16 @@ def create_adjacency_matrix(G):
     Returns:
         pd.DataFrame: Full adjacency matrix with shortest path distances
     """
-    # Get sorted list of nodes to ensure consistent ordering
-    nodes = sorted(G.nodes())
-    
-    # Create empty DataFrame with inf values
-    matrix = pd.DataFrame(
-        float('inf'), 
-        index=nodes, 
-        columns=nodes
-    )
-    
-    # Fill diagonal with zeros
-    np.fill_diagonal(matrix.values, 0)
-    
-    # Calculate shortest paths between all pairs of nodes
-    for source in nodes:
-        try:
-            # Get shortest path lengths from source to all other nodes
-            path_lengths = nx.single_source_dijkstra_path_length(G, source, weight='weight')
-            
-            # Fill the matrix with these distances
-            for target, distance in path_lengths.items():
-                matrix.loc[source, target] = distance
-                
-        except nx.NetworkXNoPath:
-            continue  # Skip if no path exists
-            
-    return matrix
+    with tempfile.TemporaryDirectory(prefix="pandana-adj-", dir="/tmp") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        graph_path = tmp_root / "graph.pkl"
+        matrix_path = tmp_root / "matrix.parquet"
+        pd.to_pickle(G, graph_path)
+        return build_graph_node_matrix_pandana_external(
+            graph_pickle_path=graph_path,
+            output_path=matrix_path,
+            weight_key="weight",
+        )
 
 def graph_to_city_model(G, service_radius, const_base_demand, service_name="hospital", adj_matrix=None):
     """
@@ -183,32 +172,45 @@ def calculate_graph_provision(G, service_radius, const_base_demand, service_name
     # print(assignment_matrix)
     
     # Add service flow assignments
+    flow_pairs = []
     for i in assignment_matrix.index:
         for j in assignment_matrix.columns:
             flow = assignment_matrix.loc[i, j]
-            if flow > 0:  # Only process non-zero flows
-                # Find shortest path for this service flow
-                try:
-                    path = nx.shortest_path(G, i, j, weight='weight')
-                    
-                    # Add direct service flow edge
-                    total_weight = sum(G[path[k]][path[k+1]]['weight'] for k in range(len(path)-1))
-                    G_with_assignments.add_edge(i, j, 
-                                             weight=total_weight,
-                                             assignment=flow,
-                                             path=path,
-                                             is_service_flow=True,
-                                             is_within=True if total_weight <= service_radius else False)
-                    
-                    # Mark edges along physical path as service routes
-                    for k in range(len(path)-1):
-                        u, v = path[k], path[k+1]
-                        G_with_assignments[u][v]['is_service_route'] = True
-                        G_with_assignments[u][v]['service_flows'] = G_with_assignments[u][v].get('service_flows', 0) + flow
-                        
-                except nx.NetworkXNoPath:
-                    # print(f"Warning: No path between service node {i} and demand node {j}")
-                    continue
+            if flow > 0:
+                flow_pairs.append({"source": i, "target": j, "flow": float(flow)})
+
+    if flow_pairs:
+        with tempfile.TemporaryDirectory(prefix="pandana-flows-", dir="/tmp") as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            graph_path = tmp_root / "graph.pkl"
+            pd.to_pickle(G, graph_path)
+            path_df = build_pairs_shortest_paths_pandana_external(
+                graph_pickle_path=graph_path,
+                pairs_df=pd.DataFrame(flow_pairs),
+                weight_key="weight",
+            )
+        for _, row in path_df.iterrows():
+            flow = float(row["flow"])
+            path = row.get("path") or []
+            total_weight = float(row.get("length", 0.0))
+            if not path:
+                continue
+            i = row["source"]
+            j = row["target"]
+            G_with_assignments.add_edge(
+                i,
+                j,
+                weight=total_weight,
+                assignment=flow,
+                path=path,
+                is_service_flow=True,
+                is_within=True if total_weight <= service_radius else False,
+            )
+            for k in range(len(path) - 1):
+                u, v = path[k], path[k + 1]
+                if G_with_assignments.has_edge(u, v):
+                    G_with_assignments[u][v]['is_service_route'] = True
+                    G_with_assignments[u][v]['service_flows'] = G_with_assignments[u][v].get('service_flows', 0) + flow
     # print(result)
     # Add provision values to graph nodes
     nx.set_node_attributes(G_with_assignments, {
