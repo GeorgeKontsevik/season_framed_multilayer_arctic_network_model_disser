@@ -1,6 +1,41 @@
 import plotly.graph_objects as go
 from scripts.preprocesser.constants import month_order
 
+MONTH_LABELS_RU = {
+    "Jan": "Янв",
+    "Feb": "Фев",
+    "Mar": "Мар",
+    "Apr": "Апр",
+    "May": "Май",
+    "Jun": "Июн",
+    "Jul": "Июл",
+    "Aug": "Авг",
+    "Sep": "Сен",
+    "Oct": "Окт",
+    "Nov": "Ноя",
+    "Dec": "Дек",
+}
+SERVICE_LABELS_RU = {
+    "marina": "порт",
+    "airport": "аэропорт",
+    "port": "порт",
+    "health": "здравоохранение",
+    "culture": "культура",
+    "post": "почта",
+}
+
+
+def month_label(value: str) -> str:
+    return MONTH_LABELS_RU.get(value, value)
+
+
+def service_label(value: str) -> str:
+    return SERVICE_LABELS_RU.get(value, value)
+
+
+def node_label(value: str) -> str:
+    return value.replace("NO_PROVIDER", "НЕТ ПОСТАВЩИКА")
+
 
 def create_clean_sankey(
     graphs,
@@ -168,7 +203,7 @@ def create_clean_sankey(
                     pad=15,
                     thickness=20,
                     line=dict(color="black", width=0.8),
-                    label=sankey_nodes,
+                    label=[node_label(node) for node in sankey_nodes],
                     color=node_colors,
                     # Remove x,y positioning to let Plotly handle it naturally
                 ),
@@ -190,7 +225,7 @@ def create_clean_sankey(
         dict(
             x=0.00,
             y=1.05,
-            text="<b>Consumers</b>",
+            text="<b>Потребители</b>",
             showarrow=False,
             xref="paper",
             yref="paper",
@@ -205,7 +240,7 @@ def create_clean_sankey(
             dict(
                 x=x_pos,
                 y=1.05,
-                text=f"<b>{month_order[month_start+t]}</b>",
+                text=f"<b>{month_label(month_order[month_start+t])}</b>",
                 showarrow=False,
                 xref="paper",
                 yref="paper",
@@ -214,7 +249,7 @@ def create_clean_sankey(
         )
 
     fig.update_layout(
-        title_text=f"{service_name.title()} Service Flow Redistribution",
+        title_text=f"Перераспределение потоков сервиса: {service_label(service_name).capitalize()}",
         font_size=11,
         width=1400,
         height=700,

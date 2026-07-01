@@ -3,6 +3,17 @@ import numpy as np
 from typing import Dict, List, Tuple, Optional, Callable, Any
 import pandas as pd
 
+MODE_LABELS_RU = {
+    "Aviation": "авиация",
+    "Regular road": "круглогодичная дорога",
+    "Winter road": "зимник",
+    "Water transport": "водный транспорт",
+}
+
+
+def mode_label(value: str) -> str:
+    return MODE_LABELS_RU.get(value, value)
+
 
 def generate_temperature_range(temp_min: float = -70, temp_max: float = 60, 
                               num_points: int = 2000) -> np.ndarray:
@@ -164,7 +175,7 @@ def plot_probability_curve(ax, temps: np.ndarray, probs: List[float],
     Returns:
         Line object from plot
     """
-    line, = ax.plot(temps, probs, label=mode, linewidth=linewidth, color=color)
+    line, = ax.plot(temps, probs, label=mode_label(mode), linewidth=linewidth, color=color)
     return line
 
 
@@ -202,7 +213,7 @@ def annotate_intersection(ax, temp: float, threshold: float, mode: str,
 
 def add_threshold_shading(ax, temps: np.ndarray, threshold: float,
                         shade_color: str = "grey", shade_alpha: float = 0.2,
-                        shade_label: str = "Non-operational zone") -> None:
+                        shade_label: str = "Нерабочая зона") -> None:
     """
     Add shading below threshold line
     
@@ -231,12 +242,12 @@ def add_threshold_line(ax, threshold: float, line_color: str = "r",
     """
     ax.axhline(
         y=threshold, color=line_color, linestyle=line_style, 
-        alpha=line_alpha, label=f"Threshold ({threshold})"
+        alpha=line_alpha, label=f"Порог ({threshold})"
     )
 
 
-def configure_plot_styling(ax, title: str, xlabel: str = "Temperature (°C)",
-                         ylabel: str = "Transport Probability", 
+def configure_plot_styling(ax, title: str, xlabel: str = "Температура (°C)",
+                         ylabel: str = "Вероятность работы транспорта", 
                          font_size: int = 12, temp_range: Tuple[float, float] = (-70, 60),
                          legend_position: Tuple[float, float] = (1.05, 1),
                          grid_alpha: float = 0.3) -> None:
@@ -272,9 +283,9 @@ def plot_transport_probability_analysis(
     figsize: Tuple[int, int] = (14, 4),
     font_size: int = 12,
     linewidth: float = 2,
-    title: str = "Transport Probability vs Temperature\nwith Threshold Intersections",
-    xlabel: str = "Temperature (°C)",
-    ylabel: str = "Transport Probability",
+    title: str = "Вероятность работы транспорта в зависимости от температуры\nс пороговыми пересечениями",
+    xlabel: str = "Температура (°C)",
+    ylabel: str = "Вероятность работы транспорта",
     show_intersections: bool = True,
     show_threshold_shading: bool = True,
     show_threshold_line: bool = True,

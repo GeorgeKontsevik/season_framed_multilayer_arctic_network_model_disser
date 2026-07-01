@@ -3,6 +3,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scripts.preprocesser.constants import SERVICE_COLORS, month_order
 
+MONTH_LABELS_RU = {
+    "Jan": "Янв",
+    "Feb": "Фев",
+    "Mar": "Мар",
+    "Apr": "Апр",
+    "May": "Май",
+    "Jun": "Июн",
+    "Jul": "Июл",
+    "Aug": "Авг",
+    "Sep": "Сен",
+    "Oct": "Окт",
+    "Nov": "Ноя",
+    "Dec": "Дек",
+}
+SERVICE_LABELS_RU = {
+    "marina": "марина",
+    "airport": "аэропорт",
+    "port": "порт",
+    "health": "здравоохранение",
+    "culture": "культура",
+    "post": "почта",
+}
+
+
+def month_label(value: str) -> str:
+    return MONTH_LABELS_RU.get(value, value)
+
+
+def service_label(value: str) -> str:
+    return SERVICE_LABELS_RU.get(value, value)
+
 def plot_multilayer_network(
     all_results, settl_name, service_list, month=5, figsize=(15, 30)
 ):
@@ -153,7 +184,7 @@ def plot_multilayer_network(
             -20,
             1,
             z - 2.3,
-            service,
+            service_label(service),
             fontsize=12,
             weight="bold",
             bbox=dict(
@@ -194,10 +225,9 @@ def plot_multilayer_network(
     ax.set_ylim(-8, 8)
 
     # Add title and remove axes
-    plt.title(f"Multilayer Service Network\n {month_order[month]} | {settl_name}", fontsize=16, weight="bold", y=0.93)
+    plt.title(f"Многоуровневая сервисная сеть\n {month_label(month_order[month])} | {settl_name}", fontsize=16, weight="bold", y=0.93)
     ax.set_axis_off()
 
     plt.tight_layout()
 
     return fig
-

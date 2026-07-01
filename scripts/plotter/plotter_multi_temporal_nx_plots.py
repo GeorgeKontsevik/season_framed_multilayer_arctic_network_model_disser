@@ -50,10 +50,37 @@ plt.rcParams.update({
 from collections import defaultdict
 
 
+MONTH_LABELS_RU = {
+    "Jan": "Янв",
+    "Feb": "Фев",
+    "Mar": "Мар",
+    "Apr": "Апр",
+    "May": "Май",
+    "Jun": "Июн",
+    "Jul": "Июл",
+    "Aug": "Авг",
+    "Sep": "Сен",
+    "Oct": "Окт",
+    "Nov": "Ноя",
+    "Dec": "Дек",
+}
+
+
+def month_label(value: str) -> str:
+    return MONTH_LABELS_RU.get(value, value)
+
+
+def transition_label(value: str) -> str:
+    parts = value.replace("→", "->").split("->")
+    if len(parts) == 2:
+        return f"{month_label(parts[0].strip())}→{month_label(parts[1].strip())}"
+    return month_label(value)
+
+
 def run_complete_temporal_analysis(all_results, settl_name, month_range=range(4, 10)):
     """Main runner for complete temporal analysis"""
     print(f"🔄 Running analysis: {settl_name}")
-    print(f"   Services: {len(service_list)} | Months: {month_order[month_range.start]}-{month_order[month_range.stop-1]}")
+    print(f"   Services: {len(service_list)} | Months: {month_label(month_order[month_range.start])}-{month_label(month_order[month_range.stop-1])}")
     print("="*60)
     
     # 1. Temporal evolution
@@ -92,7 +119,7 @@ def run_complete_temporal_analysis(all_results, settl_name, month_range=range(4,
 
 def quick_single_month_analysis(all_results, settl_name, month_idx=5):
     """Quick single month visualization"""
-    print(f"\n📍 Month: {month_order[month_idx]}")
+    print(f"\n📍 Month: {month_label(month_order[month_idx])}")
     
     pmap, provs = plot_enhanced_service_areas(all_results, settl_name, month_idx=month_idx)
     plt.show()
@@ -163,11 +190,11 @@ def plot_temporal_metrics(temporal_metrics, figsize=(18, 5)):
                 alpha=0.3, zorder=0)
         
         ax1.set_xticks(range(len(transitions)))
-        ax1.set_xticklabels(transitions, rotation=45, ha='right', fontsize=11, 
+        ax1.set_xticklabels([transition_label(x) for x in transitions], rotation=45, ha='right', fontsize=11, 
                            color=colors['neutral'], fontweight='medium')
-        ax1.set_ylabel('Jaccard Similarity', fontsize=13, fontweight='bold', 
+        ax1.set_ylabel('Сходство Жаккара', fontsize=13, fontweight='bold', 
                       color=colors['neutral'])
-        ax1.set_title('Community Similarity\nBetween Consecutive Months', 
+        ax1.set_title('Сходство сервисных зон\nмежду соседними месяцами', 
                      fontsize=14, fontweight='bold', pad=20, color=colors['neutral'])
         ax1.set_ylim([0, 1.05])
         ax1.grid(True, alpha=0.25, linestyle='--', linewidth=1.0)
@@ -198,11 +225,11 @@ def plot_temporal_metrics(temporal_metrics, figsize=(18, 5)):
                 alpha=0.3, zorder=0)
         
         ax2.set_xticks(range(len(transitions)))
-        ax2.set_xticklabels(transitions, rotation=45, ha='right', fontsize=11,
+        ax2.set_xticklabels([transition_label(x) for x in transitions], rotation=45, ha='right', fontsize=11,
                            color=colors['neutral'], fontweight='medium')
-        ax2.set_ylabel('NMI Score', fontsize=13, fontweight='bold',
+        ax2.set_ylabel('NMI', fontsize=13, fontweight='bold',
                       color=colors['neutral'])
-        ax2.set_title('Normalized Mutual\nInformation', 
+        ax2.set_title('Нормированная взаимная\nинформация', 
                      fontsize=14, fontweight='bold', pad=20, color=colors['neutral'])
         ax2.set_ylim([0, 1.05])
         ax2.grid(True, alpha=0.25, linestyle='--', linewidth=1.0)
@@ -252,11 +279,11 @@ def plot_temporal_metrics(temporal_metrics, figsize=(18, 5)):
                 bottom += np.array(values)
         
         ax3.set_xticks(range(len(transitions)))
-        ax3.set_xticklabels(transitions, rotation=45, ha='right', fontsize=11,
+        ax3.set_xticklabels([transition_label(x) for x in transitions], rotation=45, ha='right', fontsize=11,
                            color=colors['neutral'], fontweight='medium')
-        ax3.set_ylabel('Number of Communities', fontsize=13, fontweight='bold',
+        ax3.set_ylabel('Число сообществ', fontsize=13, fontweight='bold',
                       color=colors['neutral'])
-        ax3.set_title('Community Evolution Events', 
+        ax3.set_title('События эволюции сообществ', 
                      fontsize=14, fontweight='bold', pad=20, color=colors['neutral'])
         
         # Enhanced legend with better positioning
@@ -750,4 +777,3 @@ def plot_stable_communities(all_results,  settl_name,
     plt.tight_layout()
     
     return multi_service, temporal_stable, super_stable
-
