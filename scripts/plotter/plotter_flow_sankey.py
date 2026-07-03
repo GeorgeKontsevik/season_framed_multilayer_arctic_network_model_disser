@@ -16,7 +16,7 @@ MONTH_LABELS_RU = {
     "Dec": "Дек",
 }
 SERVICE_LABELS_RU = {
-    "marina": "порт",
+    "marina": "малый порт",
     "airport": "аэропорт",
     "port": "порт",
     "health": "здравоохранение",
@@ -33,8 +33,12 @@ def service_label(value: str) -> str:
     return SERVICE_LABELS_RU.get(value, value)
 
 
-def node_label(value: str) -> str:
-    return value.replace("NO_PROVIDER", "НЕТ ПОСТАВЩИКА")
+def node_label(value: str, node_labels=None, no_provider_period=None) -> str:
+    base, separator, period = value.rpartition("_T")
+    if base == "NO_PROVIDER" and no_provider_period is not None:
+        return "НЕТ<br>ПОСТАВЩИКА" if period == str(no_provider_period) else ""
+    translated = (node_labels or {}).get(base if separator else value, base if separator else value)
+    return translated.replace("NO_PROVIDER", "НЕТ<br>ПОСТАВЩИКА")
 
 
 def create_clean_sankey(
@@ -42,6 +46,9 @@ def create_clean_sankey(
     month_start,
     service_name,
     min_flow=1,
+    node_labels=None,
+    agglomeration_name=None,
+    show=True,
 ):
     """
     Create clean Sankey: Consumers -> T1_Providers -> T2_Providers -> T3_Providers
@@ -203,7 +210,7 @@ def create_clean_sankey(
                     pad=15,
                     thickness=20,
                     line=dict(color="black", width=0.8),
-                    label=[node_label(node) for node in sankey_nodes],
+                    label=[node_label(node, node_labels, len(graphs)) for node in sankey_nodes],
                     color=node_colors,
                     # Remove x,y positioning to let Plotly handle it naturally
                 ),
@@ -223,13 +230,14 @@ def create_clean_sankey(
     # Create column headers based on number of periods
     annotations = [
         dict(
-            x=0.00,
+            x=-0.02,
             y=1.05,
             text="<b>Потребители</b>",
             showarrow=False,
             xref="paper",
             yref="paper",
-            font=dict(size=14),
+            font=dict(size=18),
+            xanchor="left",
         ),
     ]
 
@@ -244,17 +252,23 @@ def create_clean_sankey(
                 showarrow=False,
                 xref="paper",
                 yref="paper",
-                font=dict(size=14),
+                font=dict(size=22),
             )
         )
 
     fig.update_layout(
-        title_text=f"Перераспределение потоков сервиса: {service_label(service_name).capitalize()}",
-        font_size=11,
+        title_text=(
+            f"{agglomeration_name}: {service_label(service_name).capitalize()}"
+            if agglomeration_name
+            else f"Перераспределение потоков сервиса: {service_label(service_name).capitalize()}"
+        ),
+        title_font_size=30,
+        font_size=18,
         width=1400,
         height=700,
         annotations=annotations,
     )
 
-    fig.show()
+    if show:
+        fig.show()
     return fig

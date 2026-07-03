@@ -18,7 +18,7 @@ MONTH_LABELS_RU = {
     "Dec": "Дек",
 }
 SERVICE_LABELS_RU = {
-    "marina": "марина",
+    "marina": "малый порт",
     "airport": "аэропорт",
     "port": "порт",
     "health": "здравоохранение",
@@ -33,6 +33,7 @@ def month_label(value: str) -> str:
 
 def service_label(value: str) -> str:
     return SERVICE_LABELS_RU.get(value, value)
+
 
 def plot_multilayer_network(
     all_results, settl_name, service_list, month=5, figsize=(15, 30)

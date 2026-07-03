@@ -3,7 +3,31 @@ import numpy as np
 import math
 
 
-def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
+RU_LABELS = {
+    "May": "Май", "Aug": "Август", "marina": "малый порт",
+    "Consumers": "Потребители", "Providers": "Поставщики",
+    "No Provider": "Нет поставщика", "NO PROVIDER": "НЕТ ПОСТАВЩИКА",
+    "Aviation": "Авиация", "Regular road": "Круглогодичная дорога",
+    "Winter road": "Зимник", "Water transport": "Водный транспорт",
+    "Service Connection": "Сервисная связь", "Unknown": "Неизвестно",
+    "Multi-path": "Составной маршрут", "No Provider Flow": "Необслуженный поток",
+    "Antipajuta": "Антипаюта", "Bajkalovsk": "Байкаловск", "Dikson": "Диксон",
+    "Dudinka": "Дудинка", "Gaz-Sale": "Газ-Сале", "Gyda": "Гыда",
+    "Hantajskoe Ozero": "Хантайское Озеро", "Hatanga": "Хатанга", "Heta": "Хета",
+    "Karaul": "Караул", "Katyryk": "Катырык", "Kazantsevo": "Казанцево",
+    "Kikkiakki": "Киккиакки", "Krasnosel'kup": "Красноселькуп", "Kresty": "Кресты",
+    "Levinskie Peski": "Левинские Пески", "Munguj": "Мунгуй", "Nahodka": "Находка",
+    "Noril'sk": "Норильск", "Nosok": "Носок", "Novaja": "Новая",
+    "Novorybnaja": "Новорыбная", "Novyj Urengoj": "Новый Уренгой",
+    "Polikarpovsk": "Поликарповск", "Popigaj": "Попигай", "Potapovo": "Потапово",
+    "Ratta": "Ратта", "Syndassko": "Сындасско", "Tarko-Sale": "Тарко-Сале",
+    "Tazovskij": "Тазовский", "Tibej-Sale": "Тибей-Сале", "Tol'ka": "Толька",
+    "Tuhard": "Тухард", "Ust'-Avam": "Усть-Авам", "Ust'-Port": "Усть-Порт",
+    "Volochanka": "Волочанка", "Vorontsovo": "Воронцово", "Zhdaniha": "Жданиха",
+}
+
+
+def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1, language="en"):
     """
     Create a circular network plot that matches the Sankey data processing exactly
     Cities are represented as flat segments along the circle perimeter
@@ -15,6 +39,11 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
     """
 
     # print(f"Creating circular network...")
+
+    label = (lambda value: RU_LABELS.get(value, value)) if language == "ru" else str
+    label_font_size = 18 if language == "ru" else 10
+    title_font_size = 30 if language == "ru" else 18
+    legend_font_size = 20 if language == "ru" else 12
 
     # Step 1: Get all unique consumers, excluding self-sufficient ones
     consumers = {}  # {consumer_name: demand}
@@ -180,7 +209,7 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
                 fill="toself",
                 mode="none",
                 fillcolor=consumer_color,
-                name="Consumers",
+                name=label("Consumers"),
                 legendgroup="consumers",
                 showlegend=show_legend,
                 hovertemplate=f"<b>{consumer}</b><br>Demand: {demand:.1f}<br>Provider: {provider}<extra></extra>",
@@ -191,9 +220,9 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
         fig.add_annotation(
             x=pos["mid_x"] * 1.15,
             y=pos["mid_y"] * 1.15,
-            text=consumer,
+            text=label(consumer),
             showarrow=False,
-            font=dict(size=10, color="#2c3e50"),
+            font=dict(size=label_font_size, color="#2c3e50"),
             xanchor="center",
             yanchor="middle",
         )
@@ -229,7 +258,7 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
                 fill="toself",
                 mode="none",
                 fillcolor=provider_color,
-                name="Providers",
+                name=label("Providers"),
                 legendgroup="providers",
                 showlegend=show_legend,
                 hovertemplate=f"<b>{provider}</b><br>Total Flow: {flow:.1f}<br>Serves: {len(served_consumers)} consumers<extra></extra>",
@@ -240,9 +269,9 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
         fig.add_annotation(
             x=pos["mid_x"] * 1.15,
             y=pos["mid_y"] * 1.15,
-            text=provider,
+            text=label(provider),
             showarrow=False,
-            font=dict(size=10, color="#2c3e50"),
+            font=dict(size=label_font_size, color="#2c3e50"),
             xanchor="center",
             yanchor="middle",
         )
@@ -275,7 +304,7 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
                 fill="toself",
                 mode="none",
                 fillcolor=no_provider_color,
-                name="No Provider",
+                name=label("No Provider"),
                 legendgroup="no_provider",
                 showlegend=True,
                 hovertemplate=f"<b>NO PROVIDER</b><br>Total Flow: {flow:.1f}<br>Unserved: {len(unserved_consumers)} consumers<extra></extra>",
@@ -286,9 +315,9 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
         fig.add_annotation(
             x=pos["mid_x"] * 1.15,
             y=pos["mid_y"] * 1.15,
-            text="NO PROVIDER",
+            text=label("NO PROVIDER"),
             showarrow=False,
-            font=dict(size=10, color="white", family="Arial Black"),
+            font=dict(size=label_font_size, color="white", family="Arial Black"),
             bgcolor="rgba(255, 71, 87, 0.8)",
             bordercolor="white",
             borderwidth=1,
@@ -372,7 +401,7 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
                 x=curve_x,
                 y=curve_y,
                 mode="lines",
-                name=edge_label,
+                name=label(edge_label),
                 legendgroup=f"transport_{edge_label}",
                 line=dict(
                     color=color,
@@ -419,7 +448,7 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
                     x=curve_x,
                     y=curve_y,
                     mode="lines",
-                    name="No Provider Flow",
+                    name=label("No Provider Flow"),
                     legendgroup="no_provider_flow",
                     line=dict(
                         color=no_provider_color,  # Red color
@@ -438,13 +467,14 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
     # Step 7: Update layout
     fig.update_layout(
         title=dict(
-            text=f"{month_name} | {service_name.title()}",
-            font=dict(size=18, family="Arial", color="#2c3e50"),
+            text=f"{label(month_name)} | {label(service_name).capitalize()}",
+            font=dict(size=title_font_size, family="Arial", color="#2c3e50"),
             x=0.5,
             xanchor="center",
         ),
         showlegend=True,
         legend=dict(
+            font=dict(size=legend_font_size),
             orientation="h",
             yanchor="top",
             y=-0.05,
@@ -475,4 +505,3 @@ def plot_circular_network_sankey_style(g, service_name, month_name, min_flow=1):
     )
 
     return fig
-
