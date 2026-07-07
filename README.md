@@ -1,19 +1,21 @@
 # arctic_access
 
-Seasonal multilayer service accessibility for Arctic settlements.
+Seasonal multilayer accessibility model for Arctic settlements. The repo compares how service reachability changes when river/sea/road/air layers open or close by month.
 
-## Scheme
+## System Map
 
 ```mermaid
 flowchart LR
-    A[Inputs] --> B[Run: notebooks/2_main.ipynb]
-    B --> C[Checked outputs]
-    C --> D[Paper / thesis use]
+    SETT[settlements + services] --> NET[multilayer transport graph]
+    SEASON[monthly availability] --> NET
+    NET --> ROUTE[seasonal shortest paths]
+    ROUTE --> METRICS[accessibility metrics]
+    METRICS --> MAPS[multilayer maps + Sankey flows]
 ```
 
 ## Main Result
 
-![Main result](plots/multilayer/multilayer_network_yakut_chuk_May.png)
+![Yakutia and Chukotka May multilayer network](plots/multilayer/multilayer_network_yakut_chuk_May.png)
 
 ## Run
 
@@ -25,14 +27,12 @@ Human:
 jupyter notebook notebooks/2_main.ipynb
 ```
 
-Agent:
-
-Run only after checking raw/processed data availability; inspect generated plots, not only notebook completion.
+Agent: check raw/processed data first, then inspect the generated multilayer maps and flow plots directly.
 
 ## Publication
 
-See thesis publication bundle in `itmo-phd-thesis-template-en/Dissertation/publications/`.
+Related paper PDF is in `../itmo-phd-thesis-template-en/Dissertation/publications/01_environment_framed_networks.pdf`.
 
 ## Next Steps / Heuristics
 
-Heuristic: seasonal modes are explicit layers; report missing/duplicate routes honestly.
+Heuristic: seasonal transport modes are explicit graph layers. Missing or duplicated routes should be reported as model output, not hidden by fallback routing.
