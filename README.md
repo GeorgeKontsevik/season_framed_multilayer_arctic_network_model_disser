@@ -1,70 +1,38 @@
-![lab logo](/docs/github_img_lab.jpeg)
-***
+# arctic_access
 
-# SEASONAL MULTILAYER SERVICE NETWOKR: ❄️ARCTIC
+Seasonal multilayer service accessibility for Arctic settlements.
 
+## Scheme
 
-<table>
-  <tr>
-    <td>Multilayer network</td>
-     <td>Scheme 1: Network overview</td>
-
-  </tr>
-  <tr>
-    <td><img src="./plots/multilayer/multilayer_network_yanao_kras_Aug.png" width=200 height=200></td>
-    <td><img src="./plots/schemas/arctic_paper_scheme_2.png" width=800 height=200></td>
-
-  </tr>
- </table>
-
- <table>
-  <tr>
-    <td>Flows by transport type</td>
-     <td>Scheme 2: Seasonal network evolution</td>
-  </tr>
-  <tr>
-    <td><img src="./plots/circled/round_aug_yanao_kras_marina.png" width=200 height=200></td>
-    <td><img src="./plots/schemas/arctic_paper_scheme_1.png" width=800 height=200></td>
-
-  </tr>
- </table>
-
-  <table>
-  <tr>
-    <td>Sankey-like demand flow distribution</td>
-  </tr>
-  <tr>
-    <td><img src="./plots/sankey/yanao_flow_marina.png" width=1000 height=500></td>
-
-  </tr>
- </table>
-
-  <table>
-  <tr>
-    <td>Temporal service areas evolution</td>
-     <td>Temporal network service community evolutions</td>
-  </tr>
-  <tr>
-    <td><img src="./plots/temporal_evolution/temporal_evo_may_aug_yanao_kras.png" width=400 height=200></td>
-    <td><img src="./plots/metrics/metrics_nao.png" width=600 height=200></td>
-
-  </tr>
- </table>
-
-
-
-
-## Repository structure
-
+```mermaid
+flowchart LR
+    A[Inputs] --> B[Run: notebooks/2_main.ipynb]
+    B --> C[Checked outputs]
+    C --> D[Paper / thesis use]
 ```
-├── data
-│   ├── processed           <- Modified data
-│   └── raw                 <- Original, immutable data
-├── notebooks               <- Jupyter notebooks
-├── plots                   <- Generated figures
-├── scripts                 <- Scripts to execute
-├── .gitignore              <- Files and folders ignored by git
-├── .pre-commit-config.yaml <- Pre-commit hooks used
-├── README.md
-└── requirements.txt        <- Requirements file to set up the environment using pip
+
+## Main Result
+
+![Main result](plots/multilayer/multilayer_network_yakut_chuk_May.png)
+
+## Run
+
+Entrypoint: `notebooks/2_main.ipynb`
+
+Human:
+
+```bash
+jupyter notebook notebooks/2_main.ipynb
 ```
+
+Agent:
+
+Run only after checking raw/processed data availability; inspect generated plots, not only notebook completion.
+
+## Publication
+
+See thesis publication bundle in `itmo-phd-thesis-template-en/Dissertation/publications/`.
+
+## Next Steps / Heuristics
+
+Heuristic: seasonal modes are explicit layers; report missing/duplicate routes honestly.
