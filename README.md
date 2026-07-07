@@ -1,5 +1,7 @@
 # arctic_access
 
+[![OSA-improved](https://img.shields.io/badge/improved%20by-OSA-yellow)](https://github.com/aimclub/OSA)
+
 Seasonal multilayer accessibility model for Arctic settlements. The repo compares how service reachability changes when river/sea/road/air layers open or close by month.
 
 ## System Map
@@ -36,3 +38,4 @@ Related paper PDF is in `../itmo-phd-thesis-template-en/Dissertation/publication
 ## Next Steps / Heuristics
 
 Heuristic: seasonal transport modes are explicit graph layers. Missing or duplicated routes should be reported as model output, not hidden by fallback routing.
+
